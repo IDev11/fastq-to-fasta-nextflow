@@ -6,8 +6,8 @@
  */
 
 // Default parameters
-params.input = "$projectDir/data/*.fastq"
-params.outdir = "$projectDir/results"
+params.input = params.input ?: 'data/*.fastq'
+params.outdir = params.outdir ?: 'results'
 
 log.info """
          ===================================
@@ -30,7 +30,7 @@ Channel
 process FASTQ_TO_FASTA {
     tag "$fastq.simpleName"
     publishDir params.outdir, mode: 'copy'
-    
+
     input:
     path fastq
     
@@ -44,8 +44,28 @@ process FASTQ_TO_FASTA {
 }
 
 /*
+ * Process : Count sequences in FASTA file
+ */
+process Count_Fasta_Sequences {
+    tag "$fasta.simpleName"
+    publishDir params.outdir, mode: 'copy'
+    
+    input:
+    path fasta
+
+    output:
+    path "*.txt"
+
+    script:
+    """
+    python $projectDir/bin/count_fasta_sequences.py $fasta ${fasta.simpleName}_count.txt
+    """
+}
+
+/*
  * Workflow
  */
 workflow {
-    FASTQ_TO_FASTA(fastq_ch)
+    converted = FASTQ_TO_FASTA(fastq_ch)
+    Count_Fasta_Sequences(converted)
 }

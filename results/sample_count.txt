@@ -1,0 +1,1 @@
+sample.fasta: 2 sequence(s)
